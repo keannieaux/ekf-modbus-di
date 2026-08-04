@@ -31,6 +31,7 @@
             <TextBox Text="{Binding Ip}" Width="140"></TextBox>
             <NumericUpDown Value="{Binding Port}" Width="100" Minimum="1" Maximum="65535" FormatString="0"></NumericUpDown>
             <Button Content="Прочитать" Command="{Binding ReadCommand}"></Button>
+            <Button Content="Записать" Command="{Binding WriteCommand}"></Button>
             <TextBlock Text="{Binding Status}" VerticalAlignment="Center"></TextBlock>
         </StackPanel>
 
@@ -47,7 +48,7 @@
                             </Grid.ColumnDefinitions>
                             <Ellipse Grid.Column="0" Classes="led" Classes.on="{Binding Bit}" VerticalAlignment="Center"></Ellipse>
                             <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"></TextBlock>
-                            <NumericUpDown Grid.Column="2" Value="{Binding Select}" Minimum="0" Maximum="65535" FormatString="0"></NumericUpDown>
+                            <NumericUpDown Grid.Column="2" Value="{Binding Select}" Minimum="0" Maximum="256" FormatString="0"></NumericUpDown>
                             <CheckBox Grid.Column="3" IsChecked="{Binding IsNc}" Content="NC" Margin="8,0"></CheckBox>
                         </Grid>
                     </DataTemplate>

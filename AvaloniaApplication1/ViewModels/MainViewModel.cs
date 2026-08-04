@@ -17,6 +17,9 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty] public partial string Status { get; set; } = "";
     [ObservableProperty] public partial string Ip { get; set; } = "192.168.1.245";
     [ObservableProperty] public partial int Port { get; set; } = 502;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(WriteCommand))]
+    public partial bool IsLoaded { get; set; }
 
     public ObservableCollection<DiPointViewModel> Points { get; } = new();
 
@@ -35,13 +38,15 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Read()
+    private void Read() => ReadFromDevice();
+    
+    private bool ReadFromDevice()
     {
         try
         {
             ModbusClient client = GetClient();
             int n = Points.Count;
-
+            
             int[] selects = client.ReadHoldingRegisters(PLc.V(SelectBase), n);
             bool[] bits = client.ReadCoils(PLc.M(BitBase), n);
             bool[] noNc = client.ReadCoils(PLc.M(NoNcBase), n);
@@ -54,14 +59,45 @@ public partial class MainViewModel : ViewModelBase
             }
 
             Status = $"Прочитано {n} строк";
+            IsLoaded = true;
+            return true;
         }
         catch (Exception ex)
         {
             Disconnect();
             Status = "Ошибка: " + ex.Message;
+            return false;
         }
     }
 
+    [RelayCommand(CanExecute = nameof(IsLoaded))]
+    private void Write()
+    {
+        try
+        {
+            ModbusClient client = GetClient();
+            int n = Points.Count;
+
+            int[] selects = new int[n];
+            bool[] noNc = new bool[n];
+            for (int i = 0; i < n; i++)
+            {
+                selects[i] = Points[i].Select;
+                noNc[i] = Points[i].IsNc;
+            }
+
+            client.WriteMultipleRegisters(PLc.V(SelectBase), selects);
+            client.WriteMultipleCoils(PLc.M(NoNcBase), noNc);
+
+            if(ReadFromDevice()) Status = $"Записано {n} строк";
+        }
+        catch (Exception ex)
+        {
+            Disconnect();
+            Status = "Ошибка: "+ex.Message;
+        }
+    }
+    
     private ModbusClient GetClient()
     {
         if (_client is {Connected: true} && _client.IPAddress == Ip && _client.Port == Port) 
