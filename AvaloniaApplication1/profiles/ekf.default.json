@@ -1,0 +1,39 @@
+﻿{
+  "name": "EKF",
+  "discreteInputs": {
+    "count": 64,
+    "rawCoilsBase": 3072,
+    "outputCoilsBase": 3200,
+    "selectorRegsBase": 10512,
+    "noNcCoilsBase": 13072
+  },
+  "starters": {
+    "count": 4,
+    "controlReg": 0,
+    "durationReg": 0,
+    "feedbackCoilsBase": 0
+  },
+  "meters": {
+    "slotCount": 6,
+    "typeRegsBase": 0,
+    "addressRegsBase": 0,
+    "dataBlocksBase": 0,
+    "dataBlockStride": 24,
+    "voltageOffset": 0,
+    "currentOffset": 6,
+    "powerOffset": 12,
+    "energyOffset": 20,
+    "serialOffset": 22,
+    "commStatusCoilsBase": 0
+  },
+  "clock": {
+    "readRegsBase": 0,
+    "writeRegsBase": 0,
+    "syncTriggerCoil": 0
+  },
+  "schedule": {
+    "monthsBase": 7000,
+    "monthStride": 248,
+    "intervalsPerDay": 8
+  }
+}
