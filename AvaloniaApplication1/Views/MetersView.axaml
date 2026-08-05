@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShnoSetting.Core.ViewModels"
+             xmlns:local="using:AvaloniaApplication1"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="660" d:DesignHeight="380"
+             x:Class="AvaloniaApplication1.Views.MetersView"
+             x:DataType="vm:MetersViewModel">
+
+    <Design.DataContext>
+        <local:DesignMetersViewModel />
+    </Design.DataContext>
+
+    <Border Classes="panel">
+        <DockPanel>
+
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
+                <TextBlock Classes="h" Text="Счетчики" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                    <Button Content="Прочитать настройки" Command="{Binding ReadConfigCommand}" />
+                    <TextBlock Classes="label" Text="Количество счетчиков:" Margin="10,0,0,0" />
+                    <Border Classes="cell" MinWidth="46">
+                        <TextBlock Text="{Binding Slots.Count}" HorizontalAlignment="Center" />
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Margin="0,8,0,0"
+                       TextWrapping="Wrap" />
+
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding Slots}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:MeterSlotViewModel">
+                            <StackPanel Spacing="4" Margin="0,0,0,14">
+
+                                <!-- Строка настроек слота -->
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Ellipse Classes="led" Classes.on="{Binding CommOk}"
+                                             VerticalAlignment="Center"
+                                             ToolTip.Tip="Статус связи со счётчиком" />
+                                    <TextBlock Classes="label" Text="{Binding Number}"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Classes="label" Text="Тип:" Margin="6,0,0,0" />
+                                    <ComboBox SelectedIndex="{Binding Type}" MinWidth="150">
+                                        <ComboBoxItem Content="CE318 (CE208)" />
+                                        <ComboBoxItem Content="CC301 (CC101)" />
+                                    </ComboBox>
+                                    <TextBlock Classes="label" Text="Номер:" />
+                                    <NumericUpDown Value="{Binding Address}" Width="110"
+                                                   Minimum="0" Maximum="65535" FormatString="0"
+                                                   ToolTip.Tip="Адрес счётчика на шине ПЛК, 0 = слот отключён" />
+                                    <TextBlock Classes="label" Text="Расход:" />
+                                    <Border Classes="cell" MinWidth="90">
+                                        <TextBlock Text="{Binding Energy, StringFormat='{}{0:F2}'}" />
+                                    </Border>
+                                    <Button Content="Записать"
+                                            Command="{Binding $parent[UserControl].DataContext.WriteSlotCommand}"
+                                            CommandParameter="{Binding}" />
+                                </StackPanel>
+
+                                <!-- Таблица по фазам -->
+                                <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+
+                                    <Border Grid.Row="0" Grid.Column="0" Classes="cell head"><TextBlock Text="Фаза" /></Border>
+                                    <Border Grid.Row="0" Grid.Column="1" Classes="cell head"><TextBlock Text="Ток" /></Border>
+                                    <Border Grid.Row="0" Grid.Column="2" Classes="cell head"><TextBlock Text="Напряжение" /></Border>
+                                    <Border Grid.Row="0" Grid.Column="3" Classes="cell head"><TextBlock Text="Мощность" /></Border>
+
+                                    <Border Grid.Row="1" Grid.Column="0" Classes="cell head"><TextBlock Text="Фаза 1" /></Border>
+                                    <Border Grid.Row="1" Grid.Column="1" Classes="cell"><TextBlock Text="{Binding I1, StringFormat='{}{0:F2}'}" /></Border>
+                                    <Border Grid.Row="1" Grid.Column="2" Classes="cell"><TextBlock Text="{Binding U1, StringFormat='{}{0:F2}'}" /></Border>
+                                    <Border Grid.Row="1" Grid.Column="3" Classes="cell"><TextBlock Text="{Binding P1, StringFormat='{}{0:F2}'}" /></Border>
+
+                                    <Border Grid.Row="2" Grid.Column="0" Classes="cell head"><TextBlock Text="Фаза 2" /></Border>
+                                    <Border Grid.Row="2" Grid.Column="1" Classes="cell"><TextBlock Text="{Binding I2, StringFormat='{}{0:F2}'}" /></Border>
+                                    <Border Grid.Row="2" Grid.Column="2" Classes="cell"><TextBlock Text="{Binding U2, StringFormat='{}{0:F2}'}" /></Border>
+                                    <Border Grid.Row="2" Grid.Column="3" Classes="cell"><TextBlock Text="{Binding P2, StringFormat='{}{0:F2}'}" /></Border>
+
+                                    <Border Grid.Row="3" Grid.Column="0" Classes="cell head"><TextBlock Text="Фаза 3" /></Border>
+                                    <Border Grid.Row="3" Grid.Column="1" Classes="cell"><TextBlock Text="{Binding I3, StringFormat='{}{0:F2}'}" /></Border>
+                                    <Border Grid.Row="3" Grid.Column="2" Classes="cell"><TextBlock Text="{Binding U3, StringFormat='{}{0:F2}'}" /></Border>
+                                    <Border Grid.Row="3" Grid.Column="3" Classes="cell"><TextBlock Text="{Binding P3, StringFormat='{}{0:F2}'}" /></Border>
+
+                                    <Border Grid.Row="4" Grid.Column="0" Classes="cell head"><TextBlock Text="ИТОГО" /></Border>
+                                    <Border Grid.Row="4" Grid.Column="1" Classes="cell"><TextBlock Text="—" /></Border>
+                                    <Border Grid.Row="4" Grid.Column="2" Classes="cell"><TextBlock Text="—" /></Border>
+                                    <Border Grid.Row="4" Grid.Column="3" Classes="cell"><TextBlock Text="{Binding PTotal, StringFormat='{}{0:F2}'}" /></Border>
+                                </Grid>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

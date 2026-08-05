@@ -11,5 +11,86 @@
 
     <Application.Styles>
         <FluentTheme />
+
+        <!-- Заголовок блока: «Пускатели», «Счетчики», «График» -->
+        <Style Selector="TextBlock.h">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="TextDecorations" Value="Underline" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Название программы в шапке -->
+        <Style Selector="TextBlock.title">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="26" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="TextBlock.label">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Рамка функционального блока -->
+        <Style Selector="Border.panel">
+            <Setter Property="BorderBrush" Value="#9AA0A6" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="10" />
+        </Style>
+
+        <!-- Крупный квадрат пускателя: обратная связь из опроса -->
+        <Style Selector="Border.starter">
+            <Setter Property="Width" Value="76" />
+            <Setter Property="Height" Value="58" />
+            <Setter Property="BorderBrush" Value="#5F6368" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="#D9D9D9" />
+        </Style>
+        <Style Selector="Border.starter.on">
+            <Setter Property="Background" Value="#22C55E" />
+        </Style>
+
+        <!-- Круглый переключатель ручного управления -->
+        <Style Selector="ToggleButton.dot">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="15" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ToggleButton.dot:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="#22C55E" />
+        </Style>
+
+        <!-- Ячейки таблиц -->
+        <Style Selector="Border.cell">
+            <Setter Property="BorderBrush" Value="#5F6368" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="6,3" />
+        </Style>
+        <Style Selector="Border.cell > TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.cell.head">
+            <Setter Property="Background" Value="#ECEDEF" />
+        </Style>
+        <Style Selector="Border.cell.head > TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Индикатор состояния входа -->
+        <Style Selector="Ellipse.led">
+            <Setter Property="Width" Value="14" />
+            <Setter Property="Height" Value="14" />
+            <Setter Property="Fill" Value="#C4C7CA" />
+        </Style>
+        <Style Selector="Ellipse.led.on">
+            <Setter Property="Fill" Value="#22C55E" />
+        </Style>
     </Application.Styles>
 </Application>

@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShnoSetting.Core.ViewModels"
+             xmlns:local="using:AvaloniaApplication1"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="380"
+             x:Class="AvaloniaApplication1.Views.StartersView"
+             x:DataType="vm:StartersViewModel">
+
+    <Design.DataContext>
+        <local:DesignStartersViewModel />
+    </Design.DataContext>
+
+    <Border Classes="panel">
+        <StackPanel Spacing="10">
+
+            <TextBlock Classes="h" Text="Пускатели" HorizontalAlignment="Left" />
+
+            <!-- Обратная связь: состояние из циклического опроса -->
+            <ItemsControl ItemsSource="{Binding Starters}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="10" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:StarterViewModel">
+                        <Border Classes="starter" Classes.on="{Binding FeedbackOn}"
+                                ToolTip.Tip="Обратная связь пускателя">
+                            <TextBlock Text="{Binding Number}" FontSize="20" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Classes="h" Text="Управление пускателями" HorizontalAlignment="Left"
+                       Margin="0,6,0,0" />
+
+            <!-- Ручное включение: биты маски управления -->
+            <ItemsControl ItemsSource="{Binding Starters}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="14" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:StarterViewModel">
+                        <ToggleButton Classes="dot" IsChecked="{Binding ManualOn}"
+                                      Content="{Binding Number}"
+                                      ToolTip.Tip="Включить пускатель в ручном режиме" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Длительность ручного режима -->
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Classes="label" Text="Час:" />
+                <NumericUpDown Name="Hours" Width="90" Minimum="0" Maximum="23"
+                               FormatString="0" Value="0" ValueChanged="OnDurationChanged" />
+                <TextBlock Classes="label" Text="Мин:" />
+                <NumericUpDown Name="Minutes" Width="90" Minimum="0" Maximum="59"
+                               FormatString="0" Value="0" ValueChanged="OnDurationChanged" />
+                <TextBlock Classes="label" Text="Сек:" />
+                <NumericUpDown Name="Seconds" Width="90" Minimum="0" Maximum="59"
+                               FormatString="0" Value="0" ValueChanged="OnDurationChanged" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Включить пускатели" Command="{Binding ApplyCommand}" />
+                <Button Content="Выключить все" Click="OnTurnOffAll" />
+            </StackPanel>
+
+            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
+        </StackPanel>
+    </Border>
+</UserControl>
