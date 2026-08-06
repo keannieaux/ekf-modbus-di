@@ -14,6 +14,9 @@ public partial class MeterSlotViewModel : ObservableObject
     [ObservableProperty] private int _type;      // 0 = CE318(CE208), 1 = CC301(CC101)
     [ObservableProperty] private int _address;   // 0 = слот отключён
 
+    /// <summary>Слот добавлен пользователем вручную (ещё не подтверждён опросом).</summary>
+    public bool IsUserAdded { get; set; }
+
     // Данные (из опроса)
     [ObservableProperty] private bool _isActive;
     [ObservableProperty] private float _u1, _u2, _u3;
@@ -24,12 +27,19 @@ public partial class MeterSlotViewModel : ObservableObject
     [ObservableProperty] private bool _commOk;
 }
 
-/// <summary>Счётчики: 6 слотов, настройка типа/адреса + данные из опроса.</summary>
+/// <summary>Счётчики: 6 слотов, настройки (тип/адрес) и данные из опроса, запись по кнопке.</summary>
 public partial class MetersViewModel : ObservableObject
 {
     private MetersService? _service;
 
+    // Последний снимок настроек, прочитанный из ПЛК (для сравнения).
+    private MeterSlotConfig[]? _plcConfig;
+
+    /// <summary>Все слоты профиля (1..6).</summary>
     public ObservableCollection<MeterSlotViewModel> Slots { get; } = new();
+
+    /// <summary>Отображаемые слоты: активные по опросу + добавленные вручную.</summary>
+    public ObservableCollection<MeterSlotViewModel> VisibleSlots { get; } = new();
 
     [ObservableProperty] private string _status = "";
 
@@ -39,11 +49,50 @@ public partial class MetersViewModel : ObservableObject
             Slots.Add(new MeterSlotViewModel { Number = i });
     }
 
-    internal void Attach(MetersService service) => _service = service;
-
-    /// <summary>Обновление данных из циклического опроса (UI-поток).</summary>
-    internal void ApplyData(MeterData?[] data)
+    internal void Attach(MetersService service)
     {
+        _service = service;
+        // Новое подключение: сбрасываем ручные добавления,
+        // видимые слоты определятся первым циклом опроса.
+        _plcConfig = null;
+        foreach (var slot in Slots)
+            slot.IsUserAdded = false;
+        VisibleSlots.Clear();
+    }
+
+    /// <summary>Добавить следующий скрытый слот для ручной настройки.</summary>
+    [RelayCommand]
+    private void AddSlot()
+    {
+        var slot = Slots.FirstOrDefault(s => !VisibleSlots.Contains(s));
+        if (slot is null) { Status = "Все слоты уже добавлены"; return; }
+
+        slot.IsUserAdded = true;
+        SetVisible(slot, true);
+        Status = $"Слот {slot.Number}: введите тип и адрес счётчика, затем нажмите «Записать»";
+    }
+
+    /// <summary>Показать/скрыть слот, сохраняя порядок по номеру.</summary>
+    private void SetVisible(MeterSlotViewModel slot, bool visible)
+    {
+        bool shown = VisibleSlots.Contains(slot);
+        if (visible && !shown)
+        {
+            int pos = VisibleSlots.Count(s => s.Number < slot.Number);
+            VisibleSlots.Insert(pos, slot);
+        }
+        else if (!visible && shown)
+        {
+            VisibleSlots.Remove(slot);
+        }
+    }
+
+    /// <summary>Обновление настроек и данных из циклического опроса (UI-поток).</summary>
+    internal void ApplyData(MetersSnapshot snapshot)
+    {
+        ApplyConfig(snapshot.Config);
+
+        var data = snapshot.Data;
         int n = Math.Min(Slots.Count, data.Length);
         for (int i = 0; i < n; i++)
         {
@@ -59,6 +108,41 @@ public partial class MetersViewModel : ObservableObject
             slot.Energy = d.Energy;
             slot.Serial = d.Serial;
             slot.CommOk = d.CommOk;
+        }
+    }
+
+    /// <summary>
+    /// Применение настроек слотов из опроса.
+    /// Обновляет поля только если настройки в ПЛК изменились —
+    /// несохранённые правки пользователя не затираются.
+    /// </summary>
+    private void ApplyConfig(MeterSlotConfig[] config)
+    {
+        bool changed = _plcConfig is null || _plcConfig.Length != config.Length;
+        if (!changed)
+        {
+            for (int i = 0; i < config.Length; i++)
+            {
+                if (_plcConfig![i].Type != config[i].Type || _plcConfig[i].Address != config[i].Address)
+                {
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        if (!changed) return;
+
+        _plcConfig = config
+            .Select(c => new MeterSlotConfig { Type = c.Type, Address = c.Address })
+            .ToArray();
+
+        int n = Math.Min(Slots.Count, config.Length);
+        for (int i = 0; i < n; i++)
+        {
+            Slots[i].Type = (int)config[i].Type;
+            Slots[i].Address = config[i].Address;
+            // Автоопределение: слот виден, если он активен в ПЛК или добавлен вручную.
+            SetVisible(Slots[i], config[i].IsActive || Slots[i].IsUserAdded);
         }
     }
 

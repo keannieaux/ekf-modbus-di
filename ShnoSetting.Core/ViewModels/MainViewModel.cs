@@ -34,6 +34,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _status = "Не подключено";
 
     public InputsViewModel Inputs { get; }
+    public FeedersViewModel Feeders { get; }
     public StartersViewModel Starters { get; } = new();
     public MetersViewModel Meters { get; } = new();
     public ClockViewModel Clock { get; } = new();
@@ -49,12 +50,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _port = settings.Port;
         _pollPeriodMs = settings.PollPeriodMs;
 
-        Inputs = new InputsViewModel(settings.InputNames);
+        Inputs = new InputsViewModel();
+        Feeders = new FeedersViewModel(Inputs);
 
         foreach (var profile in profileProvider.LoadAll())
             Profiles.Add(profile);
         _selectedProfile = Profiles.FirstOrDefault(p => p.Name == settings.ProfileName)
             ?? Profiles.FirstOrDefault();
+        if (_selectedProfile is not null)
+            Feeders.UnusedSelectorValue = _selectedProfile.DiscreteInputs.UnusedSelectorValue;
     }
 
     [RelayCommand]
@@ -121,7 +125,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnSelectedProfileChanged(ControllerProfile? value)
     {
         if (value is not null)
+        {
+            Feeders.UnusedSelectorValue = value.DiscreteInputs.UnusedSelectorValue;
             SaveSettings();
+        }
     }
 
     // ------------------------------------------------------------------
@@ -139,6 +146,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         => PostToUi(() =>
         {
             Inputs.ApplyStates(result.Inputs);
+            Inputs.ApplyConfig(result.InputConfig);
             Starters.ApplyFeedback(result.StarterFeedback);
             Meters.ApplyData(result.Meters);
             Clock.ApplyTime(result.PlcTime);
@@ -161,7 +169,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _settings.Port = Port;
         _settings.PollPeriodMs = PollPeriodMs;
         _settings.ProfileName = SelectedProfile?.Name;
-        _settings.InputNames = Inputs.GetNames();
         _settingsStore.Save(_settings);
     }
 

@@ -18,10 +18,11 @@
             <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
                 <TextBlock Classes="h" Text="Счетчики" />
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                    <Button Content="Добавить счётчик" Command="{Binding AddSlotCommand}" />
                     <Button Content="Прочитать настройки" Command="{Binding ReadConfigCommand}" />
                     <TextBlock Classes="label" Text="Количество счетчиков:" Margin="10,0,0,0" />
                     <Border Classes="cell" MinWidth="46">
-                        <TextBlock Text="{Binding Slots.Count}" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding VisibleSlots.Count}" HorizontalAlignment="Center" />
                     </Border>
                 </StackPanel>
             </Grid>
@@ -30,12 +31,12 @@
                        TextWrapping="Wrap" />
 
             <ScrollViewer>
-                <ItemsControl ItemsSource="{Binding Slots}">
+                <ItemsControl ItemsSource="{Binding VisibleSlots}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:MeterSlotViewModel">
                             <StackPanel Spacing="4" Margin="0,0,0,14">
 
-                                <!-- Строка настроек слота -->
+                                <!-- Блок ввода: настройки слота (тип INT + адрес DINT) -->
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Ellipse Classes="led" Classes.on="{Binding CommOk}"
                                              VerticalAlignment="Center"
@@ -47,14 +48,11 @@
                                         <ComboBoxItem Content="CE318 (CE208)" />
                                         <ComboBoxItem Content="CC301 (CC101)" />
                                     </ComboBox>
-                                    <TextBlock Classes="label" Text="Номер:" />
-                                    <NumericUpDown Value="{Binding Address}" Width="110"
-                                                   Minimum="0" Maximum="65535" FormatString="0"
-                                                   ToolTip.Tip="Адрес счётчика на шине ПЛК, 0 = слот отключён" />
-                                    <TextBlock Classes="label" Text="Расход:" />
-                                    <Border Classes="cell" MinWidth="90">
-                                        <TextBlock Text="{Binding Energy, StringFormat='{}{0:F2}'}" />
-                                    </Border>
+                                    <TextBlock Classes="label" Text="Адрес:" />
+                                    <NumericUpDown Value="{Binding Address}" Width="130"
+                                                   Minimum="0" Maximum="2147483647" FormatString="0"
+                                                   ToolTip.Tip="Адрес счётчика (DINT) на шине ПЛК, 0 = слот отключён.
+Для CE318 адрес совпадает с серийным номером" />
                                     <Button Content="Записать"
                                             Command="{Binding $parent[UserControl].DataContext.WriteSlotCommand}"
                                             CommandParameter="{Binding}" />
@@ -87,6 +85,24 @@
                                     <Border Grid.Row="4" Grid.Column="1" Classes="cell"><TextBlock Text="—" /></Border>
                                     <Border Grid.Row="4" Grid.Column="2" Classes="cell"><TextBlock Text="—" /></Border>
                                     <Border Grid.Row="4" Grid.Column="3" Classes="cell"><TextBlock Text="{Binding PTotal, StringFormat='{}{0:F2}'}" /></Border>
+                                </Grid>
+
+                                <!-- Серийный номер и энергия: под таблицей, на всю её ширину -->
+                                <Grid ColumnDefinitions="*,*">
+                                    <Border Grid.Column="0" Classes="cell head">
+                                        <StackPanel Orientation="Horizontal" Spacing="6"
+                                                    HorizontalAlignment="Center">
+                                            <TextBlock Text="Серийный номер:" />
+                                            <TextBlock Text="{Binding Serial}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="1" Classes="cell head">
+                                        <StackPanel Orientation="Horizontal" Spacing="6"
+                                                    HorizontalAlignment="Center">
+                                            <TextBlock Text="Накопленная энергия:" />
+                                            <TextBlock Text="{Binding Energy, StringFormat='{}{0:F2}'}" />
+                                        </StackPanel>
+                                    </Border>
                                 </Grid>
                             </StackPanel>
                         </DataTemplate>

@@ -88,7 +88,8 @@ Views (Avalonia)  →  ViewModels  →  Services  →  ModbusDispatcher  →  Ea
   "clock": {
     "readRegsBase": 0,        // год..сек, 6 регистров
     "writeRegsBase": 0,       // отдельные 6 регистров записи
-    "syncTriggerCoil": 0      // триггер «применить»
+    "syncTriggerReg": 0,      // слово управления с триггером «применить»
+    "syncTriggerBit": 0       // номер бита (0-based) — триггер «применить»
   },
   "schedule": {
     "monthsBase": 7000,       // база 1-го месяца

@@ -22,15 +22,19 @@ public sealed class ClockService(IModbusTransport transport, ControllerProfile p
         }
     }
 
-    /// <summary>Запись времени ПК в регистры ПЛК + импульс на триггер «применить».</summary>
+    /// <summary>Запись времени ПК в регистры ПЛК + импульс бита «применить» в слове управления.</summary>
     public async Task SyncToPcAsync(CancellationToken ct = default)
     {
         var now = DateTime.Now;
         int[] values = [now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second];
 
         await transport.WriteMultipleRegistersAsync(P.WriteRegsBase, values, ct);
-        await transport.WriteSingleCoilAsync(P.SyncTriggerCoil, true, ct);
+
+        // Импульс бита-триггера в слове управления (read-modify-write, чтобы не трогать другие биты).
+        int mask = 1 << P.SyncTriggerBit;
+        int word = (await transport.ReadHoldingRegistersAsync(P.SyncTriggerReg, 1, ModbusPriority.High, ct))[0];
+        await transport.WriteSingleRegisterAsync(P.SyncTriggerReg, word | mask, ct);
         await Task.Delay(300, ct);
-        await transport.WriteSingleCoilAsync(P.SyncTriggerCoil, false, ct);
+        await transport.WriteSingleRegisterAsync(P.SyncTriggerReg, word & ~mask, ct);
     }
 }

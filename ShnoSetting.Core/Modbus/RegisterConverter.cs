@@ -2,11 +2,14 @@
 
 /// <summary>
 /// Преобразование многорегистровых значений (float, DINT).
-/// Формат по ТЗ: 2 регистра, big endian — первый регистр содержит старшее слово.
+/// ПЛК передаёт 2 регистра младшим словом вперёд (первый регистр = младшее слово),
+/// значение собирается старшим словом вперёд (big endian).
 /// </summary>
 public static class RegisterConverter
 {
-    public static float ToFloat(int high, int low)
+    /// <param name="low">Первый регистр (младшее слово).</param>
+    /// <param name="high">Второй регистр (старшее слово).</param>
+    public static float ToFloat(int low, int high)
     {
         byte[] bytes =
         [
@@ -17,7 +20,9 @@ public static class RegisterConverter
         return BitConverter.ToSingle(bytes, 0);
     }
 
-    public static int ToDInt(int high, int low)
+    /// <param name="low">Первый регистр (младшее слово).</param>
+    /// <param name="high">Второй регистр (старшее слово).</param>
+    public static int ToDInt(int low, int high)
     {
         byte[] bytes =
         [
@@ -28,18 +33,20 @@ public static class RegisterConverter
         return BitConverter.ToInt32(bytes, 0);
     }
 
-    public static (int High, int Low) FromFloat(float value)
+    /// <summary>Возвращает (первый регистр = младшее слово, второй регистр = старшее слово).</summary>
+    public static (int Low, int High) FromFloat(float value)
     {
         byte[] bytes = BitConverter.GetBytes(value);
         if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
-        return ((bytes[0] << 8) | bytes[1], (bytes[2] << 8) | bytes[3]);
+        return ((bytes[2] << 8) | bytes[3], (bytes[0] << 8) | bytes[1]);
     }
 
-    public static (int High, int Low) FromDInt(int value)
+    /// <summary>Возвращает (первый регистр = младшее слово, второй регистр = старшее слово).</summary>
+    public static (int Low, int High) FromDInt(int value)
     {
         byte[] bytes = BitConverter.GetBytes(value);
         if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
-        return ((bytes[0] << 8) | bytes[1], (bytes[2] << 8) | bytes[3]);
+        return ((bytes[2] << 8) | bytes[3], (bytes[0] << 8) | bytes[1]);
     }
 
     /// <summary>Читает массив float из регистров, начиная со смещения (в регистрах).</summary>

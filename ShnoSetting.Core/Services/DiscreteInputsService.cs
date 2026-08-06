@@ -30,20 +30,33 @@ public sealed class DiscreteInputsService(IModbusTransport transport, Controller
         return new InputStates(raw, output);
     }
 
-    /// <summary>Чтение конфигурации (по кнопке).</summary>
-    public async Task<InputConfig> ReadConfigAsync(CancellationToken ct = default)
+    /// <summary>Чтение конфигурации (циклический опрос — Low, по кнопке — High).</summary>
+    public async Task<InputConfig> ReadConfigAsync(
+        ModbusPriority priority = ModbusPriority.High, CancellationToken ct = default)
     {
         var selectors = await transport.ReadHoldingRegistersAsync(
-            P.SelectorRegsBase, P.Count, ModbusPriority.High, ct);
+            P.SelectorRegsBase, P.Count, priority, ct);
         var noNc = await transport.ReadCoilsAsync(
-            P.NoNcCoilsBase, P.Count, ModbusPriority.High, ct);
+            P.NoNcCoilsBase, P.Count, priority, ct);
         return new InputConfig(selectors, noNc);
     }
 
-    /// <summary>Запись конфигурации (по кнопке).</summary>
-    public async Task WriteConfigAsync(InputConfig config, CancellationToken ct = default)
+    /// <summary>Запись назначения (селектора) одного входа — сразу при изменении в UI.</summary>
+    public Task WriteSelectorAsync(int index, int value, CancellationToken ct = default)
+        => transport.WriteSingleRegisterAsync(P.SelectorRegsBase + index, value, ct);
+
+    /// <summary>Запись флага НО/НЗ одного входа — сразу при изменении в UI.</summary>
+    public Task WriteNoNcAsync(int index, bool isNc, CancellationToken ct = default)
+        => transport.WriteSingleCoilAsync(P.NoNcCoilsBase + index, isNc, ct);
+
+    /// <summary>Сброс дискретных входов: импульс бита в слове управления (read-modify-write).</summary>
+    public async Task ResetAsync(CancellationToken ct = default)
     {
-        await transport.WriteMultipleRegistersAsync(P.SelectorRegsBase, config.Selectors, ct);
-        await transport.WriteMultipleCoilsAsync(P.NoNcCoilsBase, config.NoNc, ct);
+        int mask = 1 << P.ResetTriggerBit;
+        int word = (await transport.ReadHoldingRegistersAsync(
+            P.ResetTriggerReg, 1, ModbusPriority.High, ct))[0];
+        await transport.WriteSingleRegisterAsync(P.ResetTriggerReg, word | mask, ct);
+        await Task.Delay(300, ct);
+        await transport.WriteSingleRegisterAsync(P.ResetTriggerReg, word & ~mask, ct);
     }
 }

@@ -6,8 +6,10 @@ namespace ShnoSetting.Core.Services;
 public sealed class PollResult
 {
     public required InputStates Inputs { get; init; }
+    /// <summary>Конфигурация входов (селекторы + НО/НЗ) — читается каждый тик.</summary>
+    public required InputConfig InputConfig { get; init; }
     public required bool[] StarterFeedback { get; init; }
-    public required MeterData?[] Meters { get; init; }
+    public required MetersSnapshot Meters { get; init; }
     public DateTime? PlcTime { get; init; }
 }
 
@@ -15,6 +17,7 @@ public sealed class PollResult
 /// Циклический опрос ПЛК с настраиваемым периодом (по умолчанию 1 с).
 /// Все чтения идут с низким приоритетом — запись их вытесняет.
 /// Если цикл не успел завершиться за период — тик пропускается.
+/// При обрыве связи шлёт пробный запрос, чтобы диспетчер переподключался.
 /// График в опрос не входит (по ТЗ).
 /// </summary>
 public sealed class PollingService : IDisposable
@@ -64,11 +67,20 @@ public sealed class PollingService : IDisposable
         var ct = _stop.Token;
         while (!ct.IsCancellationRequested)
         {
-            if (_enabled && _transport.IsConnected)
+            if (_enabled)
             {
                 try
                 {
-                    Polled?.Invoke(await PollOnceAsync(ct));
+                    if (_transport.IsConnected)
+                    {
+                        Polled?.Invoke(await PollOnceAsync(ct));
+                    }
+                    else
+                    {
+                        // Пробный запрос: без него диспетчер не получает работу
+                        // и не пытается переподключиться. Ошибки ожидаемы — молчим.
+                        await _clock.ReadTimeAsync(ct);
+                    }
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested)
                 {
@@ -76,7 +88,8 @@ public sealed class PollingService : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    PollError?.Invoke(ex.Message);
+                    if (_transport.IsConnected)
+                        PollError?.Invoke(ex.Message);
                 }
             }
 
@@ -90,6 +103,7 @@ public sealed class PollingService : IDisposable
         return new PollResult
         {
             Inputs = await _inputs.ReadStatesAsync(ct),
+            InputConfig = await _inputs.ReadConfigAsync(ModbusPriority.Low, ct),
             StarterFeedback = await _starters.ReadFeedbackAsync(ct),
             Meters = await _meters.ReadDataAsync(ct),
             PlcTime = await _clock.ReadTimeAsync(ct)

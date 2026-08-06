@@ -1,0 +1,93 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:AvaloniaApplication1"
+        x:Class="AvaloniaApplication1.Views.SchedulePreviewWindow"
+        Width="1290" Height="720" MinWidth="700" MinHeight="400"
+        WindowStartupLocation="CenterOwner"
+        Title="График работы">
+
+    <DockPanel Margin="10">
+
+        <TextBlock Name="TitleText" DockPanel.Dock="Top" Classes="h" Margin="0,0,0,8" />
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8"
+                    HorizontalAlignment="Right" Margin="0,8,0,0">
+            <TextBlock Name="StatusText" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <Button Name="ExportButton" Content="Скачать CSV" Click="OnExport" />
+            <Button Name="WriteButton" Content="Записать" Click="OnWrite" />
+            <Button Content="Закрыть" Click="OnClose" />
+        </StackPanel>
+
+        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- Шапка таблицы: дата + 8 интервалов -->
+                <Grid ColumnDefinitions="90,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70"
+                      RowDefinitions="Auto,Auto">
+
+                    <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Classes="cell head">
+                        <TextBlock Text="Дата" VerticalAlignment="Center" />
+                    </Border>
+
+                    <Border Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 1" /></Border>
+                    <Border Grid.Row="0" Grid.Column="3" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 2" /></Border>
+                    <Border Grid.Row="0" Grid.Column="5" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 3" /></Border>
+                    <Border Grid.Row="0" Grid.Column="7" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 4" /></Border>
+                    <Border Grid.Row="0" Grid.Column="9" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 5" /></Border>
+                    <Border Grid.Row="0" Grid.Column="11" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 6" /></Border>
+                    <Border Grid.Row="0" Grid.Column="13" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 7" /></Border>
+                    <Border Grid.Row="0" Grid.Column="15" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 8" /></Border>
+
+                    <Border Grid.Row="1" Grid.Column="1" Classes="cell head"><TextBlock Text="Время" /></Border>
+                    <Border Grid.Row="1" Grid.Column="2" Classes="cell head"><TextBlock Text="Режим" /></Border>
+                    <Border Grid.Row="1" Grid.Column="3" Classes="cell head"><TextBlock Text="Время" /></Border>
+                    <Border Grid.Row="1" Grid.Column="4" Classes="cell head"><TextBlock Text="Режим" /></Border>
+                    <Border Grid.Row="1" Grid.Column="5" Classes="cell head"><TextBlock Text="Время" /></Border>
+                    <Border Grid.Row="1" Grid.Column="6" Classes="cell head"><TextBlock Text="Режим" /></Border>
+                    <Border Grid.Row="1" Grid.Column="7" Classes="cell head"><TextBlock Text="Время" /></Border>
+                    <Border Grid.Row="1" Grid.Column="8" Classes="cell head"><TextBlock Text="Режим" /></Border>
+                    <Border Grid.Row="1" Grid.Column="9" Classes="cell head"><TextBlock Text="Время" /></Border>
+                    <Border Grid.Row="1" Grid.Column="10" Classes="cell head"><TextBlock Text="Режим" /></Border>
+                    <Border Grid.Row="1" Grid.Column="11" Classes="cell head"><TextBlock Text="Время" /></Border>
+                    <Border Grid.Row="1" Grid.Column="12" Classes="cell head"><TextBlock Text="Режим" /></Border>
+                    <Border Grid.Row="1" Grid.Column="13" Classes="cell head"><TextBlock Text="Время" /></Border>
+                    <Border Grid.Row="1" Grid.Column="14" Classes="cell head"><TextBlock Text="Режим" /></Border>
+                    <Border Grid.Row="1" Grid.Column="15" Classes="cell head"><TextBlock Text="Время" /></Border>
+                    <Border Grid.Row="1" Grid.Column="16" Classes="cell head"><TextBlock Text="Режим" /></Border>
+                </Grid>
+
+                <!-- Дни (366 строк) -->
+                <ListBox Name="RowsList">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="0" />
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="local:ScheduleDayRow">
+                            <Grid ColumnDefinitions="90,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70">
+                                <Border Grid.Column="0" Classes="cell"><TextBlock Text="{Binding Date}" /></Border>
+                                <Border Grid.Column="1" Classes="cell"><TextBlock Text="{Binding Cells[0]}" /></Border>
+                                <Border Grid.Column="2" Classes="cell"><TextBlock Text="{Binding Cells[1]}" /></Border>
+                                <Border Grid.Column="3" Classes="cell"><TextBlock Text="{Binding Cells[2]}" /></Border>
+                                <Border Grid.Column="4" Classes="cell"><TextBlock Text="{Binding Cells[3]}" /></Border>
+                                <Border Grid.Column="5" Classes="cell"><TextBlock Text="{Binding Cells[4]}" /></Border>
+                                <Border Grid.Column="6" Classes="cell"><TextBlock Text="{Binding Cells[5]}" /></Border>
+                                <Border Grid.Column="7" Classes="cell"><TextBlock Text="{Binding Cells[6]}" /></Border>
+                                <Border Grid.Column="8" Classes="cell"><TextBlock Text="{Binding Cells[7]}" /></Border>
+                                <Border Grid.Column="9" Classes="cell"><TextBlock Text="{Binding Cells[8]}" /></Border>
+                                <Border Grid.Column="10" Classes="cell"><TextBlock Text="{Binding Cells[9]}" /></Border>
+                                <Border Grid.Column="11" Classes="cell"><TextBlock Text="{Binding Cells[10]}" /></Border>
+                                <Border Grid.Column="12" Classes="cell"><TextBlock Text="{Binding Cells[11]}" /></Border>
+                                <Border Grid.Column="13" Classes="cell"><TextBlock Text="{Binding Cells[12]}" /></Border>
+                                <Border Grid.Column="14" Classes="cell"><TextBlock Text="{Binding Cells[13]}" /></Border>
+                                <Border Grid.Column="15" Classes="cell"><TextBlock Text="{Binding Cells[14]}" /></Border>
+                                <Border Grid.Column="16" Classes="cell"><TextBlock Text="{Binding Cells[15]}" /></Border>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

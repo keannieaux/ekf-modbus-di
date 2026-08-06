@@ -11,17 +11,6 @@ public sealed class AppSettings
     public int Port { get; set; } = 502;
     public int PollPeriodMs { get; set; } = 1000;
     public string? ProfileName { get; set; }
-
-    /// <summary>Наименования 64 дискретных входов.</summary>
-    public string[] InputNames { get; set; } = CreateDefaultNames();
-
-    private static string[] CreateDefaultNames()
-    {
-        var names = new string[InputCount];
-        for (int i = 0; i < names.Length; i++)
-            names[i] = $"Вход {i}";
-        return names;
-    }
 }
 
 /// <summary>Загрузка/сохранение настроек в JSON-файл.</summary>
@@ -40,16 +29,7 @@ public sealed class SettingsStore
             {
                 var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(_path), JsonOptions);
                 if (settings is not null)
-                {
-                    // Защита от обрезанного массива имён в старых файлах.
-                    if (settings.InputNames.Length != AppSettings.InputCount)
-                    {
-                        var names = settings.InputNames;
-                        Array.Resize(ref names, AppSettings.InputCount);
-                        settings.InputNames = names;
-                    }
                     return settings;
-                }
             }
         }
         catch (Exception ex)

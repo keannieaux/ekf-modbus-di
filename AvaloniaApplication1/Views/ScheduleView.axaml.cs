@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using ShnoSetting.Core.Schedule;
 using ShnoSetting.Core.ViewModels;
 
 namespace AvaloniaApplication1.Views;
@@ -13,8 +17,6 @@ public partial class ScheduleView : UserControl
     private static readonly FilePickerFileType CsvType =
         new("CSV") { Patterns = new[] { "*.csv" } };
 
-    private string? _csvPath;
-
     public ScheduleView()
     {
         InitializeComponent();
@@ -22,7 +24,24 @@ public partial class ScheduleView : UserControl
 
     private ScheduleViewModel? ViewModel => DataContext as ScheduleViewModel;
 
-    /// <summary>«Загрузить CSV» — выбор файла графика; сама запись идёт по «Записать в RTU».</summary>
+    /// <summary>«Прочитать из RTU» — чтение графика из ПЛК и предпросмотр (без записи).</summary>
+    private async void OnReadFromRtu(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null)
+            return;
+
+        var days = await ViewModel.ReadFromPlcAsync();
+        if (days is null)
+            return;
+
+        await ShowPreview(
+            "График, прочитанный из ПЛК",
+            days,
+            write: null,
+            export: path => ViewModel.ExportCsv(path, days));
+    }
+
+    /// <summary>«Загрузить CSV» — выбор файла и предпросмотр с кнопкой «Записать».</summary>
     private async void OnLoadCsv(object? sender, RoutedEventArgs e)
     {
         IStorageProvider? storage = TopLevel.GetTopLevel(this)?.StorageProvider;
@@ -36,60 +55,70 @@ public partial class ScheduleView : UserControl
             FileTypeFilter = new[] { CsvType }
         });
 
-        if (files.Count == 0)
-            return;
-
-        _csvPath = files[0].TryGetLocalPath();
-        FileHint.Text = _csvPath is null ? "Файл не выбран" : "Файл: " + _csvPath;
+        string? path = files.Count == 0 ? null : files[0].TryGetLocalPath();
+        if (path is not null)
+            await OpenCsvPreview(path);
     }
 
-    /// <summary>«Записать в RTU» — отправка выбранного CSV в ПЛК.</summary>
-    private void OnWriteToRtu(object? sender, RoutedEventArgs e)
+    // ------------------------------------------------------------------
+    // Drag'n'Drop CSV
+
+    private void OnDragOver(object? sender, DragEventArgs e)
     {
-        if (ViewModel is null)
+        bool hasFiles = e.DataTransfer.Contains(DataFormat.File);
+        e.DragEffects = hasFiles ? DragDropEffects.Copy : DragDropEffects.None;
+        DropZone.Background = hasFiles ? Brush.Parse("#ECEDEF") : Brushes.Transparent;
+        e.Handled = true;
+    }
+
+    private void OnDragLeave(object? sender, DragEventArgs e)
+        => DropZone.Background = Brushes.Transparent;
+
+    private async void OnDrop(object? sender, DragEventArgs e)
+    {
+        DropZone.Background = Brushes.Transparent;
+
+        var files = e.DataTransfer.TryGetFiles();
+        string? path = files?.FirstOrDefault()?.TryGetLocalPath();
+        if (path is null)
             return;
 
-        if (string.IsNullOrWhiteSpace(_csvPath))
+        if (!path.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
         {
-            FileHint.Text = "Сначала выберите файл кнопкой «Загрузить CSV»";
+            FileHint.Text = "Нужен CSV-файл с графиком";
             return;
         }
 
-        if (ViewModel.ImportCsvCommand.CanExecute(_csvPath))
-            ViewModel.ImportCsvCommand.Execute(_csvPath);
+        await OpenCsvPreview(path);
     }
 
-    /// <summary>«Прочитать из RTU» — выгрузка графика из ПЛК в файл.</summary>
-    private async void OnReadFromRtu(object? sender, RoutedEventArgs e) => await ExportAsync();
+    // ------------------------------------------------------------------
 
-    /// <summary>
-    /// «Скачать CSV» — в текущем API ViewModel делает то же самое, что «Прочитать из RTU»:
-    /// таблицы в памяти нет, поэтому единственный источник данных — сам ПЛК.
-    /// </summary>
-    private async void OnDownloadCsv(object? sender, RoutedEventArgs e) => await ExportAsync();
-
-    private async Task ExportAsync()
+    /// <summary>Разбор CSV и предпросмотр с кнопкой «Записать» (запись в ПЛК).</summary>
+    private async Task OpenCsvPreview(string path)
     {
         if (ViewModel is null)
             return;
 
-        IStorageProvider? storage = TopLevel.GetTopLevel(this)?.StorageProvider;
-        if (storage is null)
+        var days = ViewModel.LoadCsv(path);
+        if (days is null)
             return;
 
-        IStorageFile? file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
-        {
-            Title = "Сохранить график в CSV",
-            SuggestedFileName = $"schedule-{DateTime.Now:yyyyMMdd-HHmm}.csv",
-            DefaultExtension = "csv",
-            FileTypeChoices = new[] { CsvType }
-        });
+        FileHint.Text = "Файл: " + path;
+        await ShowPreview(
+            "Предпросмотр графика из CSV — проверьте и нажмите «Записать»",
+            days,
+            () => ViewModel.WriteToPlcAsync(days));
+    }
 
-        string? path = file?.TryGetLocalPath();
-        if (string.IsNullOrWhiteSpace(path))
+    private async Task ShowPreview(
+        string title, IReadOnlyList<ScheduleDay> days,
+        Func<Task<bool>>? write, Func<string, bool>? export = null)
+    {
+        if (TopLevel.GetTopLevel(this) is not Window owner)
             return;
 
-        if (ViewModel.ExportCsvCommand.CanExecute(path))
-            ViewModel.ExportCsvCommand.Execute(path);
+        var window = new SchedulePreviewWindow(title, days, write, export);
+        await window.ShowDialog(owner);
     }
 }

@@ -1,11 +1,10 @@
-﻿using System.Text;
-using ShnoSetting.Core.Modbus;
+﻿using ShnoSetting.Core.Modbus;
 using ShnoSetting.Core.Profiles;
 
 namespace ShnoSetting.Core.Schedule;
 
 /// <summary>
-/// Запись графика из CSV в ПЛК и чтение графика из ПЛК в CSV.
+/// Запись графика в ПЛК и чтение графика из ПЛК.
 /// График не участвует в циклическом опросе — только по явной команде.
 /// </summary>
 public sealed class ScheduleService(IModbusTransport transport, ControllerProfile profile)
@@ -46,14 +45,6 @@ public sealed class ScheduleService(IModbusTransport transport, ControllerProfil
             await transport.WriteMultipleRegistersAsync(
                 ScheduleCalendar.MonthBase(schedule, month), registers, ct);
         }
-    }
-
-    /// <summary>Читает график из ПЛК и сохраняет канонический CSV (пропуски "--:--"/режим 5).</summary>
-    public async Task ReadToCsvAsync(string csvPath, CancellationToken ct = default)
-    {
-        var days = await ReadFromPlcAsync(ct);
-        string text = ScheduleCsv.Write(days);
-        await File.WriteAllTextAsync(csvPath, text, new UTF8Encoding(false), ct);
     }
 
     public async Task<IReadOnlyList<ScheduleDay>> ReadFromPlcAsync(CancellationToken ct = default)

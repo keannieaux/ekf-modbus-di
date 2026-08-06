@@ -4,7 +4,7 @@
              xmlns:local="using:AvaloniaApplication1"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="1140" d:DesignHeight="260"
+             mc:Ignorable="d" d:DesignWidth="1140" d:DesignHeight="180"
              x:Class="AvaloniaApplication1.Views.ScheduleView"
              x:DataType="vm:ScheduleViewModel">
 
@@ -21,65 +21,28 @@
                             HorizontalAlignment="Right">
                     <Button Content="Прочитать из RTU" Click="OnReadFromRtu"
                             IsEnabled="{Binding !IsBusy}" />
-                    <Button Content="Записать в RTU" Click="OnWriteToRtu"
-                            IsEnabled="{Binding !IsBusy}" />
-                    <Button Content="Скачать CSV" Click="OnDownloadCsv"
-                            IsEnabled="{Binding !IsBusy}" />
                     <Button Content="Загрузить CSV" Click="OnLoadCsv"
                             IsEnabled="{Binding !IsBusy}" />
                 </StackPanel>
             </Grid>
 
             <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0" Spacing="2">
-                <TextBlock Name="FileHint" Text="Файл не выбран" Foreground="#5F6368" />
+                <TextBlock Name="FileHint" Foreground="#5F6368"
+                           Text="«Прочитать из RTU» и «Загрузить CSV» открывают предпросмотр графика" />
                 <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
             </StackPanel>
 
-            <ScrollViewer HorizontalScrollBarVisibility="Auto">
-                <StackPanel>
-
-                    <!-- Шапка таблицы: дата + 8 интервалов по ТЗ -->
-                    <Grid ColumnDefinitions="90,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70"
-                          RowDefinitions="Auto,Auto">
-
-                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Classes="cell head">
-                            <TextBlock Text="Дата" VerticalAlignment="Center" />
-                        </Border>
-
-                        <Border Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 1" /></Border>
-                        <Border Grid.Row="0" Grid.Column="3" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 2" /></Border>
-                        <Border Grid.Row="0" Grid.Column="5" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 3" /></Border>
-                        <Border Grid.Row="0" Grid.Column="7" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 4" /></Border>
-                        <Border Grid.Row="0" Grid.Column="9" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 5" /></Border>
-                        <Border Grid.Row="0" Grid.Column="11" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 6" /></Border>
-                        <Border Grid.Row="0" Grid.Column="13" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 7" /></Border>
-                        <Border Grid.Row="0" Grid.Column="15" Grid.ColumnSpan="2" Classes="cell head"><TextBlock Text="Интервал 8" /></Border>
-
-                        <Border Grid.Row="1" Grid.Column="1" Classes="cell head"><TextBlock Text="Время" /></Border>
-                        <Border Grid.Row="1" Grid.Column="2" Classes="cell head"><TextBlock Text="Режим" /></Border>
-                        <Border Grid.Row="1" Grid.Column="3" Classes="cell head"><TextBlock Text="Время" /></Border>
-                        <Border Grid.Row="1" Grid.Column="4" Classes="cell head"><TextBlock Text="Режим" /></Border>
-                        <Border Grid.Row="1" Grid.Column="5" Classes="cell head"><TextBlock Text="Время" /></Border>
-                        <Border Grid.Row="1" Grid.Column="6" Classes="cell head"><TextBlock Text="Режим" /></Border>
-                        <Border Grid.Row="1" Grid.Column="7" Classes="cell head"><TextBlock Text="Время" /></Border>
-                        <Border Grid.Row="1" Grid.Column="8" Classes="cell head"><TextBlock Text="Режим" /></Border>
-                        <Border Grid.Row="1" Grid.Column="9" Classes="cell head"><TextBlock Text="Время" /></Border>
-                        <Border Grid.Row="1" Grid.Column="10" Classes="cell head"><TextBlock Text="Режим" /></Border>
-                        <Border Grid.Row="1" Grid.Column="11" Classes="cell head"><TextBlock Text="Время" /></Border>
-                        <Border Grid.Row="1" Grid.Column="12" Classes="cell head"><TextBlock Text="Режим" /></Border>
-                        <Border Grid.Row="1" Grid.Column="13" Classes="cell head"><TextBlock Text="Время" /></Border>
-                        <Border Grid.Row="1" Grid.Column="14" Classes="cell head"><TextBlock Text="Режим" /></Border>
-                        <Border Grid.Row="1" Grid.Column="15" Classes="cell head"><TextBlock Text="Время" /></Border>
-                        <Border Grid.Row="1" Grid.Column="16" Classes="cell head"><TextBlock Text="Режим" /></Border>
-                    </Grid>
-
-                    <!-- Тело таблицы появится, когда ScheduleViewModel начнёт отдавать дни -->
-                    <Border BorderBrush="#9AA0A6" BorderThickness="1,0,1,1" Padding="10" MinHeight="70">
-                        <TextBlock Foreground="#5F6368" TextWrapping="Wrap"
-                                   Text="Таблица графика пока не заполняется: ScheduleViewModel отдаёт только команды импорта и экспорта CSV, коллекции дней в нём нет. Работа с графиком идёт через файл — «Загрузить CSV», затем «Записать в RTU»." />
-                    </Border>
-                </StackPanel>
-            </ScrollViewer>
+            <!-- Область Drag'n'Drop для CSV с графиком -->
+            <Border Name="DropZone"
+                    BorderBrush="#9AA0A6" BorderThickness="2"
+                    CornerRadius="4" Padding="24" MinHeight="80"
+                    DragDrop.AllowDrop="True"
+                    DragDrop.DragOver="OnDragOver" DragDrop.DragLeave="OnDragLeave"
+                    DragDrop.Drop="OnDrop">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                           TextAlignment="Center" Foreground="#5F6368"
+                           Text="Перетащите сюда CSV-файл с графиком —&#x0a;откроется предпросмотр с записью в ПЛК" />
+            </Border>
         </DockPanel>
     </Border>
 </UserControl>

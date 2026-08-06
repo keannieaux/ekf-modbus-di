@@ -25,6 +25,12 @@ public sealed class DiscreteInputsProfile
     public int SelectorRegsBase { get; set; }
     /// <summary>Флаги НО/НЗ (coil), база блока.</summary>
     public int NoNcCoilsBase { get; set; }
+    /// <summary>Значение назначения входа — маркер «вход не используется».</summary>
+    public int UnusedSelectorValue { get; set; } = 100;
+    /// <summary>Регистр слова управления с битом «сброс дискретных входов».</summary>
+    public int ResetTriggerReg { get; set; }
+    /// <summary>Номер бита (0-based) в слове управления — «сброс дискретных входов».</summary>
+    public int ResetTriggerBit { get; set; }
 }
 
 public sealed class StartersProfile
@@ -43,7 +49,7 @@ public sealed class MetersProfile
     public int SlotCount { get; set; } = 6;
     /// <summary>Тип счётчика (0 = CE318/CE208, 1 = CC301/CC101), база блока регистров.</summary>
     public int TypeRegsBase { get; set; }
-    /// <summary>Адрес счётчика (0 = слот отключён), база блока регистров.</summary>
+    /// <summary>Адрес счётчика (DINT — 2 регистра на слот, младшим словом вперёд; 0 = слот отключён), база блока регистров.</summary>
     public int AddressRegsBase { get; set; }
     /// <summary>Начало блоков данных счётчиков.</summary>
     public int DataBlocksBase { get; set; }
@@ -65,8 +71,10 @@ public sealed class ClockProfile
     public int ReadRegsBase { get; set; }
     /// <summary>Отдельные регистры записи времени (тот же порядок).</summary>
     public int WriteRegsBase { get; set; }
-    /// <summary>Coil-триггер «применить» для синхронизации.</summary>
-    public int SyncTriggerCoil { get; set; }
+    /// <summary>Регистр слова управления с битом-триггером «применить» для синхронизации.</summary>
+    public int SyncTriggerReg { get; set; }
+    /// <summary>Номер бита (0-based) в слове управления — триггер «применить».</summary>
+    public int SyncTriggerBit { get; set; }
 }
 
 public sealed class ScheduleProfile

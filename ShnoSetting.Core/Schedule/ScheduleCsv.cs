@@ -6,14 +6,13 @@ namespace ShnoSetting.Core.Schedule;
 /// <summary>
 /// Парсер/писатель CSV графика. Формат: разделитель ';', строка = день,
 /// колонки: Дата; Время 1; Режим 1; …; Время 8; Режим 8.
-/// Пропуск времени — "--:--". Год в дате игнорируется (при выгрузке пишется 2000).
+/// Пропуск времени — "--:--". Дата без года (dd.MM); если год в файле есть — игнорируется.
 /// Файл должен содержать все 366 дней по порядку.
 /// </summary>
 public static class ScheduleCsv
 {
     private const char Separator = ';';
     private const int ColumnsPerDay = 1 + ScheduleDay.IntervalCount * 2;
-    private const int OutputYear = 2000; // високосный, 29.02 валидно; год информационный
 
     public static IReadOnlyList<ScheduleDay> Parse(string text)
     {
@@ -72,14 +71,14 @@ public static class ScheduleCsv
 
     private static void ValidateDate(string text, int month, int day, int lineNumber)
     {
-        // Формат dd.MM.yyyy; год игнорируем по ТЗ.
+        // Формат dd.MM или dd.MM.yyyy; год игнорируем по ТЗ.
         var parts = text.Trim().Split('.');
-        if (parts.Length != 3
+        if (parts.Length is not (2 or 3)
             || !int.TryParse(parts[0], out int d)
             || !int.TryParse(parts[1], out int m)
             || d != day || m != month)
             throw new FormatException(
-                $"Строка {lineNumber}: ожидалась дата {day:D2}.{month:D2}.*, найдено \"{text.Trim()}\"");
+                $"Строка {lineNumber}: ожидалась дата {day:D2}.{month:D2}, найдено \"{text.Trim()}\"");
     }
 
     public static string Write(IReadOnlyList<ScheduleDay> days)
@@ -93,9 +92,9 @@ public static class ScheduleCsv
 
         foreach (var day in days)
         {
+            // Дата без года.
             sb.Append(day.Day.ToString("D2")).Append('.')
-              .Append(day.Month.ToString("D2")).Append('.')
-              .Append(OutputYear);
+              .Append(day.Month.ToString("D2"));
 
             foreach (var interval in day.Intervals)
             {

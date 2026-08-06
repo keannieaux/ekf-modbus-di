@@ -8,7 +8,7 @@
         mc:Ignorable="d" d:DesignWidth="1180" d:DesignHeight="760"
         x:Class="AvaloniaApplication1.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/app.ico"
         Width="1180" Height="760" MinWidth="900" MinHeight="600"
         Title="SAVT — настройка ПЛК ШНО">
 
@@ -16,52 +16,52 @@
         <local:DesignMainViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
 
-        <!-- Шапка: вкладки, название, параметры подключения -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="10,8,10,4">
+        <!-- Шапка: логотип, название, кнопка подключения -->
+        <Border Grid.Row="0" BorderBrush="#9AA0A6" BorderThickness="0,0,0,1"
+                Padding="14,8" Background="#F7F8FA">
+            <Grid ColumnDefinitions="Auto,*,Auto">
 
-            <TabStrip Name="Tabs" Grid.Column="0" SelectedIndex="0" VerticalAlignment="Bottom">
-                <TabStripItem Content="Входы" />
-                <TabStripItem Content="Управление" />
-            </TabStrip>
+                <Image Grid.Column="0" Source="/Assets/savt-logo.png"
+                       Height="34" Stretch="Uniform" VerticalAlignment="Center" />
 
-            <TextBlock Grid.Column="1" Classes="title" Text="SAVT" />
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Classes="title"
+                           Text="Настройка ШНО" HorizontalAlignment="Center" />
 
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                <TextBlock Classes="label" Text="Профиль:" />
-                <ComboBox ItemsSource="{Binding Profiles}"
-                          SelectedItem="{Binding SelectedProfile}"
-                          DisplayMemberBinding="{Binding Name}"
-                          MinWidth="120" />
-                <TextBlock Classes="label" Text="IP:" Margin="6,0,0,0" />
-                <TextBox Text="{Binding Ip}" Width="140" />
-                <TextBlock Classes="label" Text="Port:" />
-                <NumericUpDown Value="{Binding Port}" Width="110"
-                               Minimum="1" Maximum="65535" FormatString="0" />
-                <Button Content="Подключить" Command="{Binding ConnectCommand}" />
-                <Button Content="Отключить" Command="{Binding DisconnectCommand}" />
-            </StackPanel>
-        </Grid>
+                <Button Grid.Column="2" Content="Подключение…" Click="OnOpenConnectDialog"
+                        VerticalAlignment="Center" />
+            </Grid>
+        </Border>
 
-        <!-- Страницы -->
-        <Carousel Grid.Row="1" Margin="10,4,10,4"
+        <!-- Переключение вкладок под шапкой (TabBar) -->
+        <TabStrip Name="Tabs" Grid.Row="1" Classes="tabbar" SelectedIndex="0"
+                  Margin="10,6,10,0" HorizontalAlignment="Center">
+            <TabStripItem Content="Управление" />
+            <TabStripItem Content="Входы" />
+        </TabStrip>
+
+        <!-- Страницы (блокируются, пока нет подключения) -->
+        <Carousel Grid.Row="2" Margin="10,4,10,4"
+                  IsEnabled="{Binding IsConnected}"
                   SelectedIndex="{Binding #Tabs.SelectedIndex}">
 
-            <views:InputsView DataContext="{Binding Inputs}" />
-
             <Grid RowDefinitions="3*,2*" ColumnDefinitions="2*,3*">
-                <views:StartersView Grid.Row="0" Grid.Column="0" Margin="0,0,5,5"
-                                    DataContext="{Binding Starters}" />
+                <Grid Grid.Row="0" Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,5,5">
+                    <views:StartersView DataContext="{Binding Starters}" Margin="0,0,0,5" />
+                    <views:FeedersView Grid.Row="1" DataContext="{Binding Feeders}" />
+                </Grid>
                 <views:MetersView Grid.Row="0" Grid.Column="1" Margin="5,0,0,5"
                                   DataContext="{Binding Meters}" />
                 <views:ScheduleView Grid.Row="1" Grid.ColumnSpan="2" Margin="0,5,0,0"
                                     DataContext="{Binding Schedule}" />
             </Grid>
+
+            <views:InputsView DataContext="{Binding Inputs}" />
         </Carousel>
 
         <!-- Строка состояния -->
-        <Border Grid.Row="2" BorderBrush="#9AA0A6" BorderThickness="0,1,0,0" Padding="10,5">
+        <Border Grid.Row="3" BorderBrush="#9AA0A6" BorderThickness="0,1,0,0" Padding="10,5">
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Ellipse Classes="led" Classes.on="{Binding IsConnected}" VerticalAlignment="Center" />
                 <TextBlock Text="{Binding Status}" VerticalAlignment="Center" />

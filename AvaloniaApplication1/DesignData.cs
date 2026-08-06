@@ -19,7 +19,7 @@ public sealed class DesignMainViewModel : MainViewModel
 
 public sealed class DesignInputsViewModel : InputsViewModel
 {
-    public DesignInputsViewModel() : base(new AppSettings().InputNames)
+    public DesignInputsViewModel()
     {
         for (int i = 0; i < Inputs.Count; i++)
         {
@@ -56,6 +56,9 @@ public sealed class DesignMetersViewModel : MetersViewModel
             slot.CommOk = slot.Address != 0;
             if (!slot.IsActive) continue;
 
+            // В превью видны только активные слоты (как после автоопределения)
+            VisibleSlots.Add(slot);
+
             slot.U1 = 231.4f; slot.U2 = 229.8f; slot.U3 = 230.6f;
             slot.I1 = 12.30f; slot.I2 = 11.75f; slot.I3 = 12.05f;
             slot.P1 = 2.84f; slot.P2 = 2.70f; slot.P3 = 2.78f; slot.PTotal = 8.32f;
@@ -68,4 +71,9 @@ public sealed class DesignMetersViewModel : MetersViewModel
 public sealed class DesignScheduleViewModel : ScheduleViewModel
 {
     public DesignScheduleViewModel() => Status = "Предпросмотр: график не загружен";
+}
+
+public sealed class DesignFeedersViewModel : FeedersViewModel
+{
+    public DesignFeedersViewModel() : base(new DesignInputsViewModel()) { }
 }
